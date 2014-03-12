@@ -31,24 +31,24 @@ port=8440
 secured_port=8441
 
 [agent]
-appPkgDir=app/pkg
-appPidDir=app/run
-appLogDir=app/log
-appTaskDir=app/data
-logDir=log
-loglevel=INFO
+app_pkg_dir=app/pkg
+app_pid_dir=app/run
+app_log_dir=app/log
+app_task_dir=app/data
+log_dir=log
+log_level=INFO
 
 [python]
 
 [command]
-maxRetries=2
-sleepBetweenRetries=1
+max_retries=2
+sleep_between_retries=1
 
 [security]
 
 [heartbeat]
-stateInterval = 6
-logLinesCount=300
+state_interval=6
+log_lines_count=300
 
 """
 s = StringIO.StringIO(content)
@@ -56,11 +56,11 @@ config.readfp(s)
 
 
 class AgentConfig:
-  APP_PACKAGE_DIR = "appPkgDir"
-  APP_PID_DIR = "appPidDir"
-  APP_LOG_DIR = "appLogDir"
-  APP_TASK_DIR = "appTaskDir"
-  LOG_DIR = "logDir"
+  APP_PACKAGE_DIR = "app_pkg_dir"
+  APP_PID_DIR = "app_pid_dir"
+  APP_LOG_DIR = "app_log_dir"
+  APP_TASK_DIR = "app_task_dir"
+  LOG_DIR = "log_dir"
 
   SERVER_SECTION = "server"
   AGENT_SECTION = "agent"
@@ -70,11 +70,15 @@ class AgentConfig:
   HEARTBEAT_SECTION = "heartbeat"
   agentRoot = "."
 
-  def __init__(self, rootPath):
+  def __init__(self, rootPath, label):
     self.agentRoot = rootPath
+    self.label = label
 
   def getRootPath(self):
     return self.agentRoot
+
+  def getLabel(self):
+    return self.label
 
   def getResolvedPath(self, name):
     global config

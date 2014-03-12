@@ -49,7 +49,7 @@ class Heartbeat:
     
     heartbeat = { 'responseId'        : int(id),
                   'timestamp'         : timestamp,
-                  'hostname'          : hostname.hostname(),
+                  'hostname'          : self.config.getLabel(),
                   'nodeStatus'        : nodeStatus
                 }
 

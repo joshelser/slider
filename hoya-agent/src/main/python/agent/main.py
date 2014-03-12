@@ -81,7 +81,7 @@ def setup_logging(verbose, logfile):
 def update_log_level(config, logfile):
   # Setting loglevel based on config file
   try:
-    loglevel = config.get('agent', 'loglevel')
+    loglevel = config.get('agent', 'log_level')
     if loglevel is not None:
       if loglevel == 'DEBUG':
         logging.basicConfig(format=formatstr, level=logging.DEBUG, filename=logfile)
@@ -183,7 +183,7 @@ def main():
   bind_signal_handlers()
 
   # Check for configuration file.
-  agentConfig = AgentConfig(options.root_folder)
+  agentConfig = AgentConfig(options.root_folder, options.label)
   update_config_from_file(agentConfig)
   logFile = os.path.join(agentConfig.getResolvedPath(AgentConfig.LOG_DIR), logFileRelPath)
   perform_prestart_checks(agentConfig)

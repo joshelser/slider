@@ -29,9 +29,7 @@ import urllib2
 import pprint
 from random import randint
 
-import hostname
-import AgentConfig
-import ProcessHelper
+from AgentConfig import AgentConfig
 from Heartbeat import Heartbeat
 from Register import Register
 from ActionQueue import ActionQueue
@@ -53,9 +51,9 @@ class Controller(threading.Thread):
     self.safeMode = True
     self.credential = None
     self.config = config
-    self.hostname = hostname.hostname()
-    server_secured_url = 'https://' + config.get('server', 'hostname') + \
-                         ':' + config.get('server', 'secured_port')
+    self.hostname = config.getLabel()
+    server_secured_url = 'https://' + config.get(AgentConfig.SERVER_SECTION, 'hostname') + \
+                         ':' + config.get(AgentConfig.SERVER_SECTION, 'secured_port')
     self.registerUrl = server_secured_url + '/agent/v1/register/' + self.hostname
     self.heartbeatUrl = server_secured_url + '/agent/v1/heartbeat/' + self.hostname
     self.netutil = NetUtil()
@@ -149,8 +147,7 @@ class Controller(threading.Thread):
     retry = False
     certVerifFailed = False
 
-    config = AgentConfig.getConfig()
-    hb_interval = config.get('heartbeat', 'state_interval')
+    hb_interval = self.config.get(AgentConfig.HEARTBEAT_SECTION, 'state_interval')
 
     #TODO make sure the response id is monotonically increasing
     id = 0

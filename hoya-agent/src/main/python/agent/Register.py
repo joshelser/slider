@@ -22,6 +22,7 @@ import os
 import time
 import subprocess
 import hostname
+from Hardware import Hardware
 from AgentConfig import AgentConfig
 
 
@@ -30,6 +31,7 @@ class Register:
   """ Registering with the server. Get the hardware profile and 
   declare success for now """
   def __init__(self, config):
+    self.hardware = Hardware()
     self.config = config
 
   def build(self, id='-1'):
@@ -40,8 +42,11 @@ class Register:
 
     register = { 'responseId'        : int(id),
                  'timestamp'         : timestamp,
-                 'hostname'          : hostname.hostname(),
+                 'hostname'          : self.config.getLabel(),
+                 'currentPingPort'   : 8670,
                  'publicHostname'    : hostname.public_hostname(),
+                 'hardwareProfile'   : self.hardware.get(),
+                 'agentEnv'          : {},
                  'agentVersion'      : version
                }
     return register
