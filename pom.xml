@@ -13,6 +13,7 @@
   <url>https://github.com/hortonworks/hoya/tree/master/</url>
   <modules>
     <module>hoya-core</module>
+    <module>hoya-agent</module>
     <module>hoya-assembly</module>
     <module>hoya-funtest</module>
   </modules>

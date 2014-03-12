@@ -1,6 +1,7 @@
 *.iml
 *.ipr
 *.iws
+*.pyc
 .idea
 .svn
 .classpath
@@ -12,6 +13,7 @@
 /hoya-core/conf
 /hoya-core/src/test/resources/hoya-test.xml
 hoya/hoya-core/src/test/resources/hoya-test.xml
+/hoya-agent/target
 /hoya-funtest/target
 /hoya-assembly/target
 release.properties
