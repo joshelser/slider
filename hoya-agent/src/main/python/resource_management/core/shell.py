@@ -52,11 +52,14 @@ def _call(command, logoutput=False, throw_on_failure=True,
   if isinstance(command, (list, tuple)):
     command = ' '.join(pipes.quote(x) for x in command)
 
+  """
+  Do not su to the supplied user (need to differentiate between when to call su and when not to)
   if user:
     command = ["su", "-", user, "-c", command]
   else:
     command = ["/bin/bash","--login","-c", command]
-
+  """
+  command = ["/bin/bash","--login","-c", command]
   proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           cwd=cwd, env=env, shell=False,
                           preexec_fn=preexec_fn)

@@ -155,7 +155,7 @@ class LiveStatus:
     self.service = service
     self.component = component
     self.globalConfig = globalConfig
-    versionsFileDir = config.getResolvedPath(AgentConfig.APP_PACKAGE_DIR)
+    versionsFileDir = config.getResolvedPath(AgentConfig.APP_TASK_DIR)
     self.versionsHandler = StackVersionsFileHandler(versionsFileDir)
 
   def belongsToService(self, component):

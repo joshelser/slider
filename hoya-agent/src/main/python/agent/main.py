@@ -37,8 +37,8 @@ logger = logging.getLogger()
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
 
-configFileRelPath = "conf/ambari-agent.ini"
-logFileRelPath = "ambari-agent.log"
+configFileRelPath = "infra/conf/agent.ini"
+logFileName = "agent.log"
 
 
 def signal_handler(signum, frame):
@@ -126,10 +126,12 @@ def perform_prestart_checks(config):
     sys.exit(1)
 
 def ensure_folder_layout(config):
+  ensure_path_exists(config.getResolvedPath(AgentConfig.APP_INSTALL_DIR))
   ensure_path_exists(config.getResolvedPath(AgentConfig.APP_LOG_DIR))
-  ensure_path_exists(config.getResolvedPath(AgentConfig.APP_PID_DIR))
+  ensure_path_exists(config.getResolvedPath(AgentConfig.APP_RUN_DIR))
   ensure_path_exists(config.getResolvedPath(AgentConfig.APP_TASK_DIR))
   ensure_path_exists(config.getResolvedPath(AgentConfig.LOG_DIR))
+  ensure_path_exists(config.getResolvedPath(AgentConfig.RUN_DIR))
 
 def ensure_path_exists(path):
   try:
@@ -174,18 +176,21 @@ def main():
   parser.add_option("-l", "--label", dest="label", help="label of the agent", default=None)
   (options, args) = parser.parse_args()
 
-  if not 'AGENT_ROOT' in os.environ:
-    parser.error("AGENT_ROOT environment variable must be set.");
-  options.root_folder = os.environ['AGENT_ROOT']
+  if not 'AGENT_WORK_ROOT' in os.environ:
+    parser.error("AGENT_WORK_ROOT environment variable must be set.");
+  options.root_folder = os.environ['AGENT_WORK_ROOT']
+  if not 'AGENT_LOG_ROOT' in os.environ:
+    parser.error("AGENT_LOG_ROOT environment variable must be set.");
+  options.log_folder = os.environ['AGENT_LOG_ROOT']
   if not options.label:
     parser.error("label is required.");
 
   bind_signal_handlers()
 
   # Check for configuration file.
-  agentConfig = AgentConfig(options.root_folder, options.label)
+  agentConfig = AgentConfig(options.root_folder, options.log_folder, options.label)
   update_config_from_file(agentConfig)
-  logFile = os.path.join(agentConfig.getResolvedPath(AgentConfig.LOG_DIR), logFileRelPath)
+  logFile = os.path.join(agentConfig.getResolvedPath(AgentConfig.LOG_DIR), logFileName)
   perform_prestart_checks(agentConfig)
   ensure_folder_layout(agentConfig)
   write_pid()

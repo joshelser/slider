@@ -26,15 +26,13 @@ from shell import getTempFiles
 
 logger = logging.getLogger()
 
-
-if 'AGENT_ROOT' in os.environ:
-    pidfile = os.environ['AGENT_ROOT'] + "/app/run/ambari-agent.pid"
+if 'AGENT_WORK_ROOT' in os.environ:
+  pidfile = os.path.join(os.environ['AGENT_WORK_ROOT'], "infra/run/agent.pid")
 else:
-    pidfile = None
+  pidfile = None
 
 
 def _clean():
-
   if not pidfile == None:
     logger.info("Removing pid file")
     try:
@@ -55,15 +53,14 @@ def _clean():
     pass
   pass
 
-def stopAgent():
 
+def stopAgent():
   _clean()
   os._exit(0)
   pass
 
 
 def restartAgent():
-
   _clean()
 
   executable = sys.executable

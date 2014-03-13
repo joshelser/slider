@@ -52,8 +52,7 @@ class Register:
     return register
 
   def read_agent_version(self):
-    data_dir = self.config.getRootPath()
-    ver_file = os.path.join(data_dir, 'version')
+    ver_file = self.config.getResolvedPath(AgentConfig.VERSION_FILE)
     f = open(ver_file, "r")
     version = f.read().strip()
     f.close()

@@ -20,6 +20,7 @@ limitations under the License.
 
 __all__ = ["Script"]
 
+import os
 import sys
 import json
 import logging
@@ -27,6 +28,7 @@ import logging
 from resource_management.core.environment import Environment
 from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus, ComponentIsNotRunning
 from resource_management.core.resources.packaging import Package
+from resource_management.core.resources import Tarball
 from resource_management.libraries.script.config_dictionary import ConfigDictionary
 from resource_management.libraries.script.repo_installer import RepoInstaller
 
@@ -140,18 +142,30 @@ class Script(object):
     from this list
     """
     config = self.get_config()
-    RepoInstaller.install_repos(config)
-    
+    repo_installed = False
+
     try:
       package_list_str = config['hostLevelParams']['package_list']
       if isinstance(package_list_str,basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
           name = package['name']
-          Package(name)
+          type = package['type']
+          if type.lower() == "tarball":
+            if name.startswith(os.path.sep):
+              tarball = name
+            else:
+              basedir = env.config.basedir
+              tarball = os.path.join(basedir, name)
+            Tarball(tarball, location=install_location)
+          else:
+            if not repo_installed:
+              RepoInstaller.install_repos(config)
+              repo_installed = True
+            Package(name)
     except KeyError:
       pass # No reason to worry
-    
+
     #RepoInstaller.remove_repos(config)
 
 

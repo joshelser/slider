@@ -57,6 +57,7 @@ PROVIDERS = dict(
     User="resource_management.core.providers.accounts.UserProvider",
     Group="resource_management.core.providers.accounts.GroupProvider",
     Service="resource_management.core.providers.service.ServiceProvider",
+    Tarball="resource_management.core.providers.tarball.TarballProvider",
   ),
 )
 
