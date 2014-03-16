@@ -103,7 +103,7 @@ def bind_signal_handlers():
 
 def update_config_from_file(agentConfig):
   try:
-    configFile = os.path.join(agentConfig.getRootPath(), configFileRelPath)
+    configFile = os.path.join(agentConfig.getWorkRootPath(), configFileRelPath)
     if os.path.exists(configFile):
       agentConfig.setConfig(configFile)
     else:

@@ -157,6 +157,7 @@ class Script(object):
             else:
               basedir = env.config.basedir
               tarball = os.path.join(basedir, name)
+            install_location = config['global']['app_install_dir']
             Tarball(tarball, location=install_location)
           else:
             if not repo_installed:

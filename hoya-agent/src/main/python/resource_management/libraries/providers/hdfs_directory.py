@@ -103,7 +103,6 @@ class HdfsDirectoryProvider(Provider):
     if len(chown_commands) != 0:
       exec_command = exec_command + ' && ' + ' && '.join(chown_commands)
 
-    not_if_command =
     Execute(exec_command,
             user=hdp_hdfs_user,
             not_if=format("hadoop fs -ls {dir_list_str}")

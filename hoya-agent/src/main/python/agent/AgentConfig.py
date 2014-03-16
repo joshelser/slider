@@ -37,6 +37,7 @@ app_run_dir=app/run
 
 app_task_dir=app/command-log
 app_log_dir=app/log
+app_tmp_dir=app/tmp
 
 log_dir=infra/log
 run_dir=infra/run
@@ -81,6 +82,8 @@ class AgentConfig:
   APP_TASK_DIR = "app_task_dir"
   # application log directory
   APP_LOG_DIR = "app_log_dir"
+  # application tmp directory
+  APP_TMP_DIR = "app_tmp_dir"
 
   # agent log directory
   LOG_DIR = "log_dir"
@@ -93,6 +96,7 @@ class AgentConfig:
     APP_PACKAGE_DIR: "WORK",
     APP_INSTALL_DIR: "WORK",
     APP_RUN_DIR: "WORK",
+    APP_TMP_DIR: "WORK",
     RUN_DIR: "WORK",
     VERSION_FILE: "WORK",
     APP_TASK_DIR: "LOG",
@@ -105,8 +109,11 @@ class AgentConfig:
     self.logroot = logroot
     self.label = label
 
-  def getRootPath(self):
+  def getWorkRootPath(self):
     return self.workroot
+
+  def getLogPath(self):
+    return self.logroot
 
   def getLabel(self):
     return self.label

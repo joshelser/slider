@@ -23,6 +23,7 @@ import logging
 from StatusCheck import StatusCheck
 import AgentConfig
 from StackVersionsFileHandler import StackVersionsFileHandler
+from AgentConfig import AgentConfig
 
 logger = logging.getLogger()
 

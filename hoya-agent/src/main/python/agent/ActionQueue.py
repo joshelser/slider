@@ -68,7 +68,7 @@ class ActionQueue(threading.Thread):
     self.controller = controller
     self.sh = shellRunner()
     self._stop = threading.Event()
-    self.tmpdir = config.get(AgentConfig.AGENT_SECTION, AgentConfig.APP_TASK_DIR)
+    self.tmpdir = config.getResolvedPath(AgentConfig.APP_TASK_DIR)
     self.customServiceOrchestrator = CustomServiceOrchestrator(config,
                                                                controller)
 
@@ -180,15 +180,6 @@ class ActionQueue(threading.Thread):
     if status == self.COMPLETED_STATUS:
       if command.has_key('configurationTags'):
         roleResult['configurationTags'] = command['configurationTags']
-      component = {'serviceName':command['serviceName'],'componentName':command['role']}
-      if command.has_key('roleCommand') and \
-        (command['roleCommand'] == self.ROLE_COMMAND_START or \
-        (command['roleCommand'] == self.ROLE_COMMAND_INSTALL \
-        and component in LiveStatus.CLIENT_COMPONENTS) or \
-        (command['roleCommand'] == self.ROLE_COMMAND_CUSTOM_COMMAND and \
-        command['hostLevelParams'].has_key('custom_command') and \
-        command['hostLevelParams']['custom_command'] == self.CUSTOM_COMMAND_RESTART)):
-        roleResult['configurationTags'] = configHandler.read_actual_component(command['role'])
     self.commandStatuses.put_command_status(command, roleResult)
 
 

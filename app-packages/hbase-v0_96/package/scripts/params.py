@@ -25,12 +25,12 @@ import status_params
 # server configurations
 config = Script.get_config()
 
-hbase_root = config['configurations']['global']['hbase_root']
+hbase_root = config['configurations']['global']['app_root']
 conf_dir = format("{hbase_root}/conf")
 daemon_script = format("{hbase_root}/bin/hbase-daemon.sh")
 
 hbase_user = status_params.hbase_user
-smokeuser = config['configurations']['global']['smokeuser']
+#smokeuser = config['configurations']['global']['smokeuser']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 user_group = config['configurations']['global']['user_group']
@@ -41,7 +41,7 @@ metric_prop_file_name = "hadoop-metrics2-hbase.properties"
 # not supporting 32 bit jdk.
 java64_home = config['hostLevelParams']['java_home']
 
-log_dir = config['configurations']['global']['hbase_log_dir']
+log_dir = config['configurations']['global']['app_log_dir']
 master_heapsize = config['configurations']['global']['hbase_master_heapsize']
 
 regionserver_heapsize = config['configurations']['global']['hbase_regionserver_heapsize']
@@ -55,10 +55,11 @@ client_jaas_config_file = default('hbase_client_jaas_config_file', format("{conf
 master_jaas_config_file = default('hbase_master_jaas_config_file', format("{conf_dir}/hbase_master_jaas.conf"))
 regionserver_jaas_config_file = default('hbase_regionserver_jaas_config_file', format("{conf_dir}/hbase_regionserver_jaas.conf"))
 
-rs_hosts = default('hbase_rs_hosts', config['clusterHostInfo']['slave_hosts']) #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
+#rs_hosts = default('hbase_rs_hosts', config['clusterHostInfo']['slave_hosts']) #if hbase_rs_hosts not given it is
+# assumed that region servers on same nodes as slaves
 
-smoke_test_user = config['configurations']['global']['smokeuser']
-smokeuser_permissions = default('smokeuser_permissions', "RWXCA")
+#smoke_test_user = config['configurations']['global']['smokeuser']
+#smokeuser_permissions = default('smokeuser_permissions', "RWXCA")
 
 if security_enabled:
   
@@ -78,8 +79,8 @@ if security_enabled:
     
 master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab.file']
 regionserver_keytab_path = config['configurations']['hbase-site']['hbase.regionserver.keytab.file']
-smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
-hbase_user_keytab = config['configurations']['global']['hbase_user_keytab']
+#smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
+#hbase_user_keytab = config['configurations']['global']['hbase_user_keytab']
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 if security_enabled:
   kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_user};")
