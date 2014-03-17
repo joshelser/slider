@@ -25,10 +25,12 @@ import pprint
 import threading
 from threading import Thread
 from Grep import Grep
-import shell, sys
+import shell
+import sys
 
 
 logger = logging.getLogger()
+
 
 class PythonExecutor:
   """
@@ -48,7 +50,7 @@ class PythonExecutor:
     pass
 
   def run_file(self, script, script_params, tmpoutfile, tmperrfile, timeout,
-               tmpstructedoutfile, override_output_files = True):
+               tmpstructedoutfile, override_output_files=True, environment_vars=None):
     """
     Executes the specified python file in a separate subprocess.
     Method returns only when the subprocess is finished.
@@ -59,19 +61,19 @@ class PythonExecutor:
     recreated or appended
     """
     if override_output_files: # Recreate files
-      tmpout =  open(tmpoutfile, 'w')
-      tmperr =  open(tmperrfile, 'w')
+      tmpout = open(tmpoutfile, 'w')
+      tmperr = open(tmperrfile, 'w')
     else: # Append to files
-      tmpout =  open(tmpoutfile, 'a')
-      tmperr =  open(tmperrfile, 'a')
+      tmpout = open(tmpoutfile, 'a')
+      tmperr = open(tmperrfile, 'a')
     script_params += [tmpstructedoutfile]
     pythonCommand = self.python_command(script, script_params)
     logger.info("Running command " + pprint.pformat(pythonCommand))
-    process = self.launch_python_subprocess(pythonCommand, tmpout, tmperr)
+    process = self.launch_python_subprocess(pythonCommand, tmpout, tmperr, environment_vars)
     logger.debug("Launching watchdog thread")
     self.event.clear()
     self.python_process_has_been_killed = False
-    thread = Thread(target =  self.python_watchdog_func, args = (process, timeout))
+    thread = Thread(target=self.python_watchdog_func, args=(process, timeout))
     thread.start()
     # Waiting for the process to be either finished or killed
     process.communicate()
@@ -90,7 +92,7 @@ class PythonExecutor:
       if os.path.exists(tmpstructedoutfile):
         errMsg = 'Unable to read structured output from ' + tmpstructedoutfile
         structured_out = {
-          'msg' : errMsg
+          'msg': errMsg
         }
         logger.warn(structured_out)
       else:
@@ -104,34 +106,38 @@ class PythonExecutor:
     return result
 
 
-  def launch_python_subprocess(self, command, tmpout, tmperr):
+  def launch_python_subprocess(self, command, tmpout, tmperr, environment_vars=None):
     """
     Creates subprocess with given parameters. This functionality was moved to separate method
     to make possible unit testing
     """
+    env = os.environ.copy()
+    if environment_vars:
+      for k, v in environment_vars:
+        env[k] = v
     return subprocess.Popen(command,
-      stdout=tmpout,
-      stderr=tmperr, close_fds=True)
+                            stdout=tmpout,
+                            stderr=tmperr, close_fds=True, env=env)
 
   def isSuccessfull(self, returncode):
     return not self.python_process_has_been_killed and returncode == 0
 
   def python_command(self, script, script_params):
     python_binary = sys.executable
-    python_command = [python_binary, script] + script_params
+    python_command = [python_binary, "-S", script] + script_params
     return python_command
 
   def condenseOutput(self, stdout, stderr, retcode, structured_out):
     log_lines_count = self.config.get('heartbeat', 'log_lines_count')
-    
+
     grep = self.grep
     result = {
       "exitcode": retcode,
       "stdout": grep.tail(stdout, log_lines_count) if log_lines_count else stdout,
       "stderr": grep.tail(stderr, log_lines_count) if log_lines_count else stderr,
-      "structuredOut" : structured_out
+      "structuredOut": structured_out
     }
-    
+
     return result
 
   def python_watchdog_func(self, python, timeout):
