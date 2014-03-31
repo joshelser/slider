@@ -74,7 +74,7 @@ class TestFunctionalAccumuloCluster extends AccumuloCommandTestBase
 
     describe "Create a working Accumulo cluster"
 
-    def path = buildClusterPath(CLUSTER)
+    def path = buildClusterPath(getClusterName())
     assert !clusterFS.exists(path)
 
     Map<String, Integer> roleMap = [
@@ -92,7 +92,7 @@ class TestFunctionalAccumuloCluster extends AccumuloCommandTestBase
     List<String> extraArgs = []
 
     createAccumuloCluster(
-        CLUSTER,
+        getClusterName(),
         roleMap,
         extraArgs,
         true,
@@ -101,9 +101,9 @@ class TestFunctionalAccumuloCluster extends AccumuloCommandTestBase
         )
 
     //get a hoya client against the cluster
-    HoyaClient hoyaClient = bondToCluster(HOYA_CONFIG, CLUSTER)
+    HoyaClient hoyaClient = bondToCluster(HOYA_CONFIG, getClusterName())
     ClusterDescription cd = hoyaClient.clusterDescription
-    assert CLUSTER == cd.name
+    assert getClusterName() == cd.name
 
     log.info("Connected via HoyaClient {}", hoyaClient.toString())
 
