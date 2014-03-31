@@ -63,9 +63,9 @@ public class TestFunctionalAccumuloM1T1GC1Mon1 extends TestFunctionalAccumuloClu
     hoya(0, [
       HoyaActions.ACTION_FREEZE,
       getClusterName(),
-      ARG_WAIT,
+      Arguments.ARG_WAIT,
       Integer.toString(FREEZE_WAIT_TIME),
-      ARG_MESSAGE,
+      Arguments.ARG_MESSAGE,
       "freeze-in-test-AccumuloCluster"
     ])
     
