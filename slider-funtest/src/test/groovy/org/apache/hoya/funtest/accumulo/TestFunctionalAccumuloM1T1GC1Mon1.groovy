@@ -55,8 +55,6 @@ public class TestFunctionalAccumuloM1T1GC1Mon1 extends TestFunctionalAccumuloClu
   @Override
   public void clusterLoadOperations(
       String clustername,
-      Configuration clientConf,
-      int numWorkers,
       Map<String, Integer> roleMap,
       ClusterDescription cd) {
 

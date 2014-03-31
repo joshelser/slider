@@ -28,6 +28,9 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
+import static org.apache.hoya.providers.accumulo.AccumuloConfigFileOptions.*
+import static org.apache.hoya.providers.accumulo.AccumuloKeys.*
+
 /**
  * 
  */
@@ -110,7 +113,7 @@ class TestFunctionalAccumuloCluster extends AccumuloCommandTestBase
     //wait for the role counts to be reached
     waitForRoleCount(hoyaClient, roleMap, ACCUMULO_LAUNCH_WAIT_TIME)
     
-    clusterLoadOperations(clusterName, clientConf, numWorkers, roleMap, cd)
+    clusterLoadOperations(clusterName, roleMap, cd)
   }
 
 
@@ -125,12 +128,10 @@ class TestFunctionalAccumuloCluster extends AccumuloCommandTestBase
    */
   public void clusterLoadOperations(
       String clustername,
-      Configuration clientConf,
-      int numWorkers,
       Map<String, Integer> roleMap,
       ClusterDescription cd) {
 
-    log.info("Client Configuration = " + ConfigHelper.dumpConfigToString(clientConf))
+    log.info("Client Description = " + cd.toJsonString())
   }
 
 }
