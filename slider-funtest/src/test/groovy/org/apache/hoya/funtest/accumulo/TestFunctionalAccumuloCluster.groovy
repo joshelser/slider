@@ -16,17 +16,17 @@
  */
 package org.apache.hoya.funtest.accumulo
 
-import java.util.Map;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hoya.HoyaExitCodes;
+import org.apache.hadoop.conf.Configuration
+import org.apache.hoya.HoyaExitCodes
 import org.apache.hoya.api.ClusterDescription
-import org.apache.hoya.funtest.framework.FuntestProperties;
-import org.apache.hoya.yarn.Arguments;
+import org.apache.hoya.funtest.framework.FuntestProperties
+import org.apache.hoya.funtest.framework.PortAssignments
+import org.apache.hoya.tools.ConfigHelper
+import org.apache.hoya.yarn.Arguments
 import org.apache.hoya.yarn.client.HoyaClient
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
 
 /**
  * 
@@ -39,12 +39,12 @@ class TestFunctionalAccumuloCluster extends AccumuloCommandTestBase
     return "test_functional_accumulo_cluster"
   }
       
-  @BeforeClass
+  @Before
   public void prepareCluster() {
     setupCluster(getClusterName())
   }
 
-  @AfterClass
+  @After
   public void destroyCluster() {
     teardown(getClusterName())
   }

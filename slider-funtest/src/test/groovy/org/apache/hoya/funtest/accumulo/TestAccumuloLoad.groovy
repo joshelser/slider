@@ -39,16 +39,7 @@ class TestAccumuloLoad extends TestFunctionalAccumuloM1T1GC1Mon1 {
       Map<String, Integer> roleMap,
       ClusterDescription cd) {
     assert clustername
-    int numKeys = 4000 * numWorkers
-    String[] args = ["-tn", "test", "-write", "4:100",
-        "-num_keys", numKeys,
-        "-zk", clientConf.get(HBaseConfigFileOptions.KEY_ZOOKEEPER_QUORUM),
-        "-zk_root", clientConf.get(HBaseConfigFileOptions.KEY_ZNODE_PARENT),
-
-    ]
-    LoadTestTool loadTool = new LoadTestTool();
-    loadTool.setConf(clientConf)
-    int ret = loadTool.run(args);
+    int ret = 0;
     assert ret == 0;
   }
 }
