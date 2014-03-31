@@ -41,6 +41,10 @@ class TestFunctionalAccumuloCluster extends AccumuloCommandTestBase
   public String getClusterName() {
     return "test_functional_accumulo_cluster"
   }
+
+  public String getPassword() {
+    return "password";
+  }
       
   @Before
   public void prepareCluster() {
@@ -100,7 +104,8 @@ class TestFunctionalAccumuloCluster extends AccumuloCommandTestBase
         extraArgs,
         true,
         clusterOps,
-        "256"
+        "256",
+        getPassword()
         )
 
     //get a hoya client against the cluster

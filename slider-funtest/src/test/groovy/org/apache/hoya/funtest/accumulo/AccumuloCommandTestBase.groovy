@@ -18,18 +18,19 @@
 
 package org.apache.hoya.funtest.accumulo
 
-import org.apache.hadoop.yarn.conf.YarnConfiguration
-import org.apache.hoya.funtest.framework.CommandTestBase
-import org.apache.hoya.funtest.framework.SliderShell
-import org.apache.hoya.yarn.Arguments
-import org.junit.Before
-
 import static org.apache.hoya.HoyaXMLConfKeysForTesting.KEY_TEST_ACCUMULO_APPCONF
 import static org.apache.hoya.HoyaXMLConfKeysForTesting.KEY_TEST_ACCUMULO_TAR
 import static org.apache.hoya.api.ResourceKeys.YARN_MEMORY
 import static org.apache.hoya.providers.accumulo.AccumuloKeys.*
 import static org.apache.hoya.yarn.Arguments.ARG_PROVIDER
 import static org.apache.hoya.yarn.Arguments.ARG_RES_COMP_OPT
+
+import org.apache.hadoop.yarn.conf.YarnConfiguration
+import org.apache.hoya.funtest.framework.CommandTestBase
+import org.apache.hoya.funtest.framework.SliderShell
+import org.apache.hoya.providers.accumulo.AccumuloKeys
+import org.apache.hoya.yarn.Arguments
+import org.junit.Before
 
 /**
  * Anything specific to accumulo tests
@@ -61,7 +62,8 @@ abstract class AccumuloCommandTestBase extends CommandTestBase {
                                          List<String> argsList,
                                          boolean blockUntilRunning,
                                          Map<String, String> clusterOps,
-                                         String containerMemory) {
+                                         String containerMemory,
+                                         String password) {
     argsList << ARG_PROVIDER << PROVIDER_ACCUMULO;
 
 
@@ -76,6 +78,8 @@ abstract class AccumuloCommandTestBase extends CommandTestBase {
 
     argsList << Arguments.ARG_CONFDIR <<
     getRequiredConfOption(HOYA_CONFIG, KEY_TEST_ACCUMULO_APPCONF)
+    
+    argsList << Arguments.ARG_OPTION_SHORT << AccumuloKeys.OPTION_ACCUMULO_PASSWORD << password
 
     argsList << ARG_RES_COMP_OPT << ROLE_MASTER <<
     YARN_MEMORY << containerMemory

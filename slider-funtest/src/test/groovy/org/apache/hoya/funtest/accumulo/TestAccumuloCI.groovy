@@ -16,30 +16,45 @@
  */
 package org.apache.hoya.funtest.accumulo
 
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.util.LoadTestTool
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
+
+import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.ZooKeeperInstance
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.hoya.api.ClusterDescription
-import org.apache.hoya.providers.hbase.HBaseConfigFileOptions
+import org.apache.hoya.funtest.framework.CommandTestBase
+import org.apache.hoya.funtest.framework.FuntestProperties
+
 
 /**
  * 
  */
-class TestAccumuloLoad extends TestFunctionalAccumuloM1T1GC1Mon1 {
+@CompileStatic
+@Slf4j
+class TestAccumuloCI extends TestFunctionalAccumuloCluster {
   
   @Override
   String getClusterName() {
-    return "test_accumulo_load"
+    return "test_accumulo_ci"
   }
 
   @Override
   void clusterLoadOperations(
       String clustername,
-      Configuration clientConf,
-      int numWorkers,
       Map<String, Integer> roleMap,
       ClusterDescription cd) {
     assert clustername
     int ret = 0;
+
+    String zookeepers = CommandTestBase.HOYA_CONFIG.get(FuntestProperties.KEY_HOYA_TEST_ZK_HOSTS, FuntestProperties.DEFAULT_HOYA_ZK_HOSTS)
+    ZooKeeperInstance inst = new ZooKeeperInstance(System.getProperty("user.name") + "-" + clustername, zookeepers)
+    PasswordToken passwd = new PasswordToken(getPassword())
+    Connector conn = inst.getConnector("root", new PasswordToken(getPassword()))
+    
+    String tableName = "testAccumuloCi";
+    conn.tableOperations().create(tableName);
+
     assert ret == 0;
   }
 }
