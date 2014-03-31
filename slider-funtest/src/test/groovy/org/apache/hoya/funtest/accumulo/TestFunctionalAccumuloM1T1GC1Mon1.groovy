@@ -18,8 +18,12 @@
 
 package org.apache.hoya.funtest.accumulo
 
+import java.util.Map;
+
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hoya.HoyaExitCodes
 import org.apache.hoya.api.ClusterDescription
 import org.apache.hoya.funtest.framework.FuntestProperties
@@ -36,91 +40,36 @@ import static org.apache.hoya.providers.accumulo.AccumuloConfigFileOptions.*
 
 @CompileStatic
 @Slf4j
-public class TestFunctionalAccumuloM1T1GC1Mon1 extends AccumuloCommandTestBase
-    implements FuntestProperties, Arguments, HoyaExitCodes {
+public class TestFunctionalAccumuloM1T1GC1Mon1 extends TestFunctionalAccumuloCluster {
 
-
-  static String CLUSTER = "test_functional_accumulo_m1t1gc1mon1"
-
-
-  @BeforeClass
-  public static void prepareCluster() {
-    setupCluster(CLUSTER)
+  @Override
+  public String getClusterName() {
+    return "test_functional_accumulo_m1t1gc1mon1";
   }
 
-  @AfterClass
-  public static void destroyCluster() {
-    teardown(CLUSTER)
-  }
-
-  @Test
-  public void test_functional_accumulo_m1t1gc1mon1() throws Throwable {
-
-    describe "Create a working Accumulo cluster"
-
-    def path = buildClusterPath(CLUSTER)
-    assert !clusterFS.exists(path)
-
-    int tablets = 1
-    int monitor = 1
-    int gc = 1
-    
-    Map<String, Integer> roleMap = [
-        (ROLE_MASTER) : 1,
-        (ROLE_TABLET) : tablets,
-        (ROLE_MONITOR): monitor,
-        (ROLE_GARBAGE_COLLECTOR): gc
-    ];
-
-    Map<String, String> clusterOps = [:]
-        clusterOps["site." + MONITOR_PORT_CLIENT] =
-            Integer.toString (PortAssignments._test_functional_accumulo_m1t1gc1mon1_mon)
-        
-    List<String> extraArgs = [
-/*        
-        ARG_ROLEOPT, HBaseKeys.ROLE_MASTER, "app.infoport",
-        Integer.toString(PortAssignments._testHBaseCreateCluster),
-        ARG_ROLEOPT, HBaseKeys.ROLE_WORKER, "app.infoport",
-        Integer.toString(PortAssignments._testHBaseCreateCluster2),
-        RoleKeys.APP_INFOPORT, AccumuloConfigFileOptions.MASTER_PORT_CLIENT_DEFAULT,
-        ARG_ROLEOPT, ROLE_MONITOR, RoleKeys.APP_INFOPORT,
-        AccumuloConfigFileOptions.MONITOR_PORT_CLIENT_DEFAULT
-        */
-    ]
-
-    createAccumuloCluster(
-        CLUSTER,
-        roleMap,
-        extraArgs,
-        true,
-        clusterOps,
-        "256"
-    )
-
-    //get a hoya client against the cluster
-    HoyaClient hoyaClient = bondToCluster(HOYA_CONFIG, CLUSTER)
-    ClusterDescription cd = hoyaClient.clusterDescription
-    assert CLUSTER == cd.name
-
-    log.info("Connected via HoyaClient {}", hoyaClient.toString())
-
-    //wait for the role counts to be reached
-    waitForRoleCount(hoyaClient, roleMap, ACCUMULO_LAUNCH_WAIT_TIME)
-
-    cd = hoyaClient.clusterDescription
-
-//    fetchWebPage()
+  /**
+   * Override point for any cluster load operations
+   * @param clientConf
+   * @param numWorkers
+   */
+  @Override
+  public void clusterLoadOperations(
+      String clustername,
+      Configuration clientConf,
+      int numWorkers,
+      Map<String, Integer> roleMap,
+      ClusterDescription cd) {
 
     hoya(0, [
-        HoyaActions.ACTION_FREEZE, CLUSTER,
-        ARG_WAIT, Integer.toString(FREEZE_WAIT_TIME),
-        ARG_MESSAGE, "freeze-in-test-AccumuloCluster"
+      HoyaActions.ACTION_FREEZE,
+      getClusterName(),
+      ARG_WAIT,
+      Integer.toString(FREEZE_WAIT_TIME),
+      ARG_MESSAGE,
+      "freeze-in-test-AccumuloCluster"
     ])
-
-    //destroy the cluster. This only works if the permissions allow it
-    destroy(0, CLUSTER)
     
-
+    //destroy the cluster. This only works if the permissions allow it
+    destroy(0, getClusterName())
   }
-
 }
