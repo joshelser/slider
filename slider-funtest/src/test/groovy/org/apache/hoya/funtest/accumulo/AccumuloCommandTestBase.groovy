@@ -79,7 +79,7 @@ abstract class AccumuloCommandTestBase extends CommandTestBase {
     argsList << Arguments.ARG_CONFDIR <<
     getRequiredConfOption(HOYA_CONFIG, KEY_TEST_ACCUMULO_APPCONF)
     
-    argsList << Arguments.ARG_OPTION_SHORT << AccumuloKeys.OPTION_ACCUMULO_PASSWORD << password
+    argsList << Arguments.ARG_OPTION << AccumuloKeys.OPTION_ACCUMULO_PASSWORD << password
 
     argsList << ARG_RES_COMP_OPT << ROLE_MASTER <<
     YARN_MEMORY << containerMemory
