@@ -26,5 +26,5 @@ interface PortAssignments {
   
   int _testHBaseCreateCluster = 7000;
   int _testHBaseCreateCluster2 = 7001;
-
+  int _testAccumuloCI = 62424;
 }

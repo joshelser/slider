@@ -23,10 +23,17 @@ import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.test.continuous.ContinuousIngest
+import org.apache.accumulo.test.continuous.ContinuousVerify
+import org.apache.hadoop.fs.LocalFileSystem
+import org.apache.hadoop.fs.Path
 import org.apache.hadoop.io.Text
+import org.apache.hadoop.util.ToolRunner
+import org.apache.hadoop.yarn.conf.YarnConfiguration
 import org.apache.hoya.api.ClusterDescription
 import org.apache.hoya.funtest.framework.CommandTestBase
 import org.apache.hoya.funtest.framework.FuntestProperties
+import org.apache.hoya.funtest.framework.PortAssignments
+import org.apache.hoya.providers.accumulo.AccumuloKeys
 
 
 /**
@@ -47,17 +54,24 @@ class TestAccumuloCI extends TestFunctionalAccumuloCluster {
   }
 
   @Override
+  public int getMonitorPort() {
+    return PortAssignments._testAccumuloCI;
+  }
+
+  @Override
   void clusterLoadOperations(
       String clustername,
       Map<String, Integer> roleMap,
       ClusterDescription cd) {
     assert clustername
 
+    String currentUser = System.getProperty("user.name");
     String zookeepers = CommandTestBase.HOYA_CONFIG.get(FuntestProperties.KEY_HOYA_TEST_ZK_HOSTS, FuntestProperties.DEFAULT_HOYA_ZK_HOSTS)
-    ZooKeeperInstance inst = new ZooKeeperInstance(System.getProperty("user.name") + "-" + clustername, zookeepers)
+    ZooKeeperInstance inst = new ZooKeeperInstance(currentUser + "-" + clustername, zookeepers)
     PasswordToken passwd = new PasswordToken(getPassword())
     Connector conn = inst.getConnector("root", new PasswordToken(getPassword()))
     
+    // Create the test table with some split points
     String tableName = "testAccumuloCi";
     conn.tableOperations().create(tableName)
     TreeSet<Text> splits = new TreeSet<Text>()
@@ -66,11 +80,11 @@ class TestAccumuloCI extends TestFunctionalAccumuloCluster {
     splits.add(new Text("7"))
     conn.tableOperations().addSplits(tableName, splits)
     
-    // Write 25M records per tserver -- should take a few minutes
+    // Write 15M records per tserver -- should take a few minutes
     String[] ciOpts = ["-i", inst.getInstanceName(),
       "-z", zookeepers, "-u", "root",
       "-p", getPassword(), "--table", tableName,
-      "--num", Integer.toString(1000 * 1000 * 25 * getNumTservers()),
+      "--num", Integer.toString(1000 * 1000 * 15 * getNumTservers()),
       "--batchMemory", "100000000",
       "--batchLatency", "600000",
       "--batchThreads", "1"]
@@ -78,6 +92,25 @@ class TestAccumuloCI extends TestFunctionalAccumuloCluster {
     ContinuousIngest ci = new ContinuousIngest();
     ci.main(ciOpts);
     
+    // Create a directory for the verify to write its output to
+    Path verifyOutput = new Path("/user/" + currentUser + "/.slider/cluster/" + clustername + "/verify-output")
+    assert !clusterFS.exists(verifyOutput)
+    
+    YarnConfiguration verifyConf = new YarnConfiguration(CommandTestBase.HOYA_CONFIG);
+
+        // Try to load the necessary classes for the Mappers to find them
+    if (loadClassesForMapReduce(verifyConf)) {
+      // If we found those classes, try to run in distributed mode.
+      tryToLoadMapredSite(verifyConf)
+    }
+    
     // Run ContinuousVerify and ensure that no holes exist
+    ContinuousVerify verify = new ContinuousVerify();
+    String[] verifyOpts = ["-i", inst.getInstanceName(),
+      "-z", zookeepers, "-u", "root",
+      "-p", getPassword(), "--table", tableName,
+      "--output", verifyOutput.toString(), "--maxMappers", Integer.toString(2 * getNumTservers()),
+      "--reducers", Integer.toString(getNumTservers())]
+    assert 0 == ToolRunner.run(verifyConf, verify, verifyOpts)
   }
 }

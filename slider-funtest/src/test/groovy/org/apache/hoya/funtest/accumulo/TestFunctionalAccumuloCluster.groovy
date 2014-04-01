@@ -77,6 +77,10 @@ class TestFunctionalAccumuloCluster extends AccumuloCommandTestBase
   public int getNumTracers() {
     return 0
   }
+  
+  public int getMonitorPort() {
+    return 0
+  }
 
   @Test
   public void testAccumuloClusterCreate() throws Throwable {
@@ -95,7 +99,7 @@ class TestFunctionalAccumuloCluster extends AccumuloCommandTestBase
     ];
 
     Map<String, String> clusterOps = [:]
-    clusterOps["site." + MONITOR_PORT_CLIENT] = "0"
+    clusterOps["site." + MONITOR_PORT_CLIENT] = Integer.toString(getMonitorPort())
 
     List<String> extraArgs = []
 

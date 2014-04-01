@@ -25,11 +25,20 @@ import static org.apache.hoya.providers.accumulo.AccumuloKeys.*
 import static org.apache.hoya.yarn.Arguments.ARG_PROVIDER
 import static org.apache.hoya.yarn.Arguments.ARG_RES_COMP_OPT
 
+import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat
+import org.apache.accumulo.fate.ZooStore
+import org.apache.accumulo.trace.instrument.Tracer
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.LocalFileSystem
+import org.apache.hadoop.fs.Path
+import org.apache.hadoop.mapreduce.filecache.DistributedCache
 import org.apache.hadoop.yarn.conf.YarnConfiguration
+import org.apache.hoya.HoyaXMLConfKeysForTesting
 import org.apache.hoya.funtest.framework.CommandTestBase
 import org.apache.hoya.funtest.framework.SliderShell
 import org.apache.hoya.providers.accumulo.AccumuloKeys
 import org.apache.hoya.yarn.Arguments
+import org.apache.thrift.TException
 import org.junit.Before
 
 /**
@@ -95,5 +104,101 @@ abstract class AccumuloCommandTestBase extends CommandTestBase {
                              argsList,
                              blockUntilRunning,
                              clusterOps)
+  }
+                                         
+  public boolean loadClassesForMapReduce(Configuration conf) {
+    String[] neededClasses = [AccumuloInputFormat.class.getName(), TException.class.getName(), ZooStore.class.getName(), Tracer.class.getName()]
+    String[] neededJars = ["accumulo-core.jar", "libthrift.jar", "accumulo-fate.jar", "accumulo-trace.jar"]
+    
+    LocalFileSystem localfs = new LocalFileSystem();
+    localfs.initialize(new URI("file:///"), conf);
+    ArrayList<Path> jarsToLoad = new ArrayList<Path>();
+    
+    ClassLoader loader = AccumuloCommandTestBase.class.getClassLoader();
+    boolean missingJar = false
+    try {
+      for (String className : neededClasses) {
+        className = className.replace('.', '/') + ".class"
+        URL url = loader.getResource(className)
+        log.debug("For $className found $url")
+        String path = url.getPath();
+        int separator = path.indexOf('!')
+        if (-1 == separator) {
+          log.info("Could not interpret $path to find a valid path to a jar")
+          missingJar = true;
+          break;
+        }
+        path = path.substring(0, separator)
+        Path jarPath = new Path(path);
+        if (!localfs.exists(jarPath)) {
+          log.info("Could not find $jarPath")
+          missingJar = true
+          jarsToLoad.clear();
+          break
+        } else {
+          jarsToLoad.add(jarPath);
+        }
+      }
+    } catch (Exception e) {
+      log.warn("Got exception trying to parse jars from maven repository", e)
+      missingJar = true
+    }
+
+    if (missingJar) { 
+      String accumuloHome = conf.get(HoyaXMLConfKeysForTesting.KEY_TEST_ACCUMULO_HOME)
+      if (null == accumuloHome) {
+        log.info(HoyaXMLConfKeysForTesting.KEY_TEST_ACCUMULO_HOME + " is not defined in Slider configuration. Cannot load jars from local Accumulo installation")
+      } else {
+        Path p = new Path(accumuloHome + "/lib")
+        if (localfs.exists(p)) {
+          log.info("Found lib directory in local accumulo home: $p")
+          for (String neededJar : neededJars) {
+            Path jarPath = new Path(p, neededJar);
+            if (!localfs.exists(jarPath)) {
+              log.info("Could not find " + jarPath)
+              missingJar = true
+              jarsToLoad.clear();
+              break
+            } else {
+              jarsToLoad.add(jarPath);
+            }
+          }
+        }
+      }
+    }
+      
+    if (!missingJar) {
+      for (Path neededJar : jarsToLoad) {
+        log.info("Adding to mapreduce classpath: $neededJar")
+        DistributedCache.addArchiveToClassPath(neededJar, conf, localfs)
+      }
+      return true
+    } else {
+      log.info("Falling back to local mapreduce because the necessary Accumulo classes couldn't be loaded")
+    }
+    
+    return false
+  }
+  
+  public void tryToLoadMapredSite(Configuration conf) {
+    String hadoopHome = conf.get(AccumuloKeys.OPTION_HADOOP_HOME)
+    
+    // Add mapred-site.xml if we can find it
+    if (null == hadoopHome) {
+      log.info(AccumuloKeys.OPTION_HADOOP_HOME + " was not defined in Slider configuration. Running job in local mode");
+    } else {
+      LocalFileSystem localfs = new LocalFileSystem();
+      localfs.initialize(new URI("file:///"), conf);
+          
+      // If we found the necessary jars, make sure we throw mapred-site.xml on the classpath
+      // too so that we avoid local mode
+      Path p = new Path(hadoopHome + "/etc/hadoop/mapred-site.xml");
+      if (localfs.exists(p)) {
+        log.info("Loaded mapred-site.xml from " + p);
+        conf.addResource(p);
+      } else {
+        log.info("Failed to load mapred-site.xml as it doesn't exist at " + p);
+      }
+    }
   }
 }
