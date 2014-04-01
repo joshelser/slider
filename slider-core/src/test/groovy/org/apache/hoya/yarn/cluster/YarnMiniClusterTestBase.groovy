@@ -399,7 +399,7 @@ public abstract class YarnMiniClusterTestBase extends ServiceLauncherBaseTest {
       Path clusterDir = new HoyaFileSystem(dfs, miniCluster.config).buildHoyaClusterDirPath(clustername)
       log.info("deleting customer data at $clusterDir")
       //this is a safety check to stop us doing something stupid like deleting /
-      assert clusterDir.toString().contains("/.hoya/")
+      assert clusterDir.toString().contains("/.hoya/") || clusterDir.toString().contains("/.slider/")
       dfs.delete(clusterDir, true)
     }
 
