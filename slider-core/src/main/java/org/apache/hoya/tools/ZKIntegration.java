@@ -115,6 +115,10 @@ public class ZKIntegration implements Watcher {
                              createClusterPath,
                              watchEventHandler);
   }
+  
+  public String getConnectionString() {
+    return zkConnection;
+  }
 
   public String getClusterPath() {
     return mkClusterPath(username, clustername);

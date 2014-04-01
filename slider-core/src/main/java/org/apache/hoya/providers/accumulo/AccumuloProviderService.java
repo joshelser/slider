@@ -317,10 +317,11 @@ public class AccumuloProviderService extends AbstractProviderService implements
       instanceDefinition.getInternalOperations();
     ConfTreeOperations resourceOperations =
       instanceDefinition.getResourceOperations();
+    String accumuloInstanceName = internalOperations.get(OptionKeys.APPLICATION_NAME);
     commands = buildProcessCommandList(instanceDefinition, confDir, env,
                             "init",
                             PARAM_INSTANCE_NAME,
-                            providerUtils.getUserName() + "-" + instanceDefinition.getName(),
+                            providerUtils.getUserName() + "-" + accumuloInstanceName,
                             PARAM_PASSWORD,
                             appConfOperations.getGlobalOptions().getMandatoryOption(
                               OPTION_ACCUMULO_PASSWORD),
