@@ -22,6 +22,8 @@ import groovy.util.logging.Slf4j
 import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.test.continuous.ContinuousIngest
+import org.apache.hadoop.io.Text
 import org.apache.hoya.api.ClusterDescription
 import org.apache.hoya.funtest.framework.CommandTestBase
 import org.apache.hoya.funtest.framework.FuntestProperties
@@ -38,6 +40,11 @@ class TestAccumuloCI extends TestFunctionalAccumuloCluster {
   String getClusterName() {
     return "test_accumulo_ci"
   }
+  
+  @Override
+  public int getNumTservers() {
+    return 2;
+  }
 
   @Override
   void clusterLoadOperations(
@@ -45,7 +52,6 @@ class TestAccumuloCI extends TestFunctionalAccumuloCluster {
       Map<String, Integer> roleMap,
       ClusterDescription cd) {
     assert clustername
-    int ret = 0;
 
     String zookeepers = CommandTestBase.HOYA_CONFIG.get(FuntestProperties.KEY_HOYA_TEST_ZK_HOSTS, FuntestProperties.DEFAULT_HOYA_ZK_HOSTS)
     ZooKeeperInstance inst = new ZooKeeperInstance(System.getProperty("user.name") + "-" + clustername, zookeepers)
@@ -53,8 +59,25 @@ class TestAccumuloCI extends TestFunctionalAccumuloCluster {
     Connector conn = inst.getConnector("root", new PasswordToken(getPassword()))
     
     String tableName = "testAccumuloCi";
-    conn.tableOperations().create(tableName);
+    conn.tableOperations().create(tableName)
+    TreeSet<Text> splits = new TreeSet<Text>()
+    splits.add(new Text("2"))
+    splits.add(new Text("5"))
+    splits.add(new Text("7"))
+    conn.tableOperations().addSplits(tableName, splits)
+    
+    // Write 25M records per tserver -- should take a few minutes
+    String[] ciOpts = ["-i", inst.getInstanceName(),
+      "-z", zookeepers, "-u", "root",
+      "-p", getPassword(), "--table", tableName,
+      "--num", Integer.toString(1000 * 1000 * 25 * getNumTservers()),
+      "--batchMemory", "100000000",
+      "--batchLatency", "600000",
+      "--batchThreads", "1"]
 
-    assert ret == 0;
+    ContinuousIngest ci = new ContinuousIngest();
+    ci.main(ciOpts);
+    
+    // Run ContinuousVerify and ensure that no holes exist
   }
 }

@@ -953,6 +953,12 @@
         <version>${accumulo.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.apache.accumulo</groupId>
+        <artifactId>accumulo-test</artifactId>
+        <version>${accumulo.version}</version>
+      </dependency>
+
 
       <!-- ======================================================== -->
       <!-- Others -->

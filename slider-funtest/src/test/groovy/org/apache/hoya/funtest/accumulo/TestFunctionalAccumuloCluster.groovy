@@ -95,8 +95,7 @@ class TestFunctionalAccumuloCluster extends AccumuloCommandTestBase
     ];
 
     Map<String, String> clusterOps = [:]
-    clusterOps["site." + MONITOR_PORT_CLIENT] =
-        Integer.toString (PortAssignments._test_functional_accumulo_m1t1gc1mon1_mon)
+    clusterOps["site." + MONITOR_PORT_CLIENT] = "0"
 
     List<String> extraArgs = []
 
